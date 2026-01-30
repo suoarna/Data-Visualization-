@@ -1,0 +1,38 @@
+prompt 1: Prepare the sample data 
+=>Download Data as CSV File 
+=>Convert the CSv file to JSON file 
+=> Go to CSV to JSON Converter website 
+=> upload the file by choosing the file and click convert 
+=> After the file is converted , download the csv.json file.
+7. => Provide the sample data of json file like given below (only first few rows of data like first part of code)
+
+
+
+2) prompt 2 :Paste the sample data in Google Gemini
+
+{ "Country": "Afghanistan", "Year": 2015, "Status": "Developing", "Life expectancy": 65, "Adult Mortality": 263, "infant deaths": 62, "Alcohol": 0.01, "percentage expenditure": 71.27962362, "Hepatitis B": 65, "Measles": 1154, "BMI": 19.1, "under-five deaths": 83, "Polio": 6, "Total expenditure": 8.16, "Diphtheria": 65, "HIV/AIDS": 0.1, "GDP": 584.25921, "Population": 33736494, "thinness 1-19 years": 17.2, "thinness 5-9 years": 17.3, "Income composition of resources": 0.479, "Schooling": 10.1 }, 
+
+
+This is the structure of the life expectancy data in JSON format. Understand the structure and 6 key data visualization metrics that would be the first fit to create an interactive life expectancy dashboard. Also explain why we should use each one?
+
+3) prompt 3 :Generate the HTML code for the dashboard by copying the prompt below paste to google gemini
+
+Now, I want you to create an interactive life expectancy performance dashboard with the 6 key visualization using HTML and javascript . Use the latest version of Plotty.js CDN and include an uploaded feature so that we can upload the JSON file . It should generate the dashboard based on the uploaded data. Note : i need upload the life expectancy data from my local computer, and it should create the dashboard based on the data
+
+4) Prompt 4: Perform this below step 
+provide this as an HTML downloadable file? or 
+
+How to use this:
+Copy the code above.
+
+Paste it into a text editor (Notepad, VS Code, or TextEdit).
+
+Save the file as life_expectancy_dashboard.html.
+
+Open that file in your browser.
+
+Upload your JSON file.
+
+==============================================
+
+✓ Analysis Complete. Dashboard Generated.

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life Expectancy Performance Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-3.3.0.min.js" charset="utf-8"></script>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --primary: #2c3e50;
+            --accent: #3498db;
+        }
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg-color); 
+            margin: 0; 
+            padding: 20px; 
+            color: #333;
+        }
+        .header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            background: var(--primary); 
+            color: white; 
+            padding: 30px; 
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .upload-section { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            padding: 40px; 
+            background: var(--card-bg); 
+            border-radius: 12px; 
+            border: 2px dashed var(--accent);
+            transition: all 0.3s ease;
+        }
+        .upload-section:hover {
+            background: #ebf5fb;
+        }
+        .dashboard-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); 
+            gap: 25px; 
+            display: none; /* Hidden until data is uploaded */
+        }
+        .chart-container { 
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+            min-height: 450px; 
+        }
+        #status-msg { margin-top: 15px; font-weight: 600; }
+        .instruction { font-size: 0.9em; color: #666; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Life Expectancy Performance Dashboard</h1>
+    <p>Data Visualization & Predictive Insights Engine</p>
+</div>
+
+<div class="upload-section" id="drop-area">
+    <h3>Step 1: Upload Data</h3>
+    <input type="file" id="jsonUpload" accept=".json">
+    <p class="instruction">Select the JSON file containing your Life Expectancy records</p>
+    <div id="status-msg"></div>
+</div>
+
+<div class="dashboard-grid" id="dashboard">
+    <div id="trendChart" class="chart-container"></div>
+    <div id="gdpChart" class="chart-container"></div>
+    <div id="vaxChart" class="chart-container"></div>
+    <div id="mortalityChart" class="chart-container"></div>
+    <div id="schoolingChart" class="chart-container"></div>
+    <div id="statusChart" class="chart-container"></div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('jsonUpload');
+    const statusMsg = document.getElementById('status-msg');
+    const dashboard = document.getElementById('dashboard');
+
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const rawData = JSON.parse(e.target.result);
+                // Ensure data is an array
+                const data = Array.isArray(rawData) ? rawData : [rawData];
+                
+                statusMsg.style.color = "#27ae60";
+                statusMsg.innerText = "✓ Analysis Complete. Dashboard Generated.";
+                dashboard.style.display = "grid";
+                
+                renderDashboard(data);
+                // Smooth scroll to results
+                window.scrollTo({ top: dashboard.offsetTop - 20, behavior: 'smooth' });
+                
+            } catch (err) {
+                statusMsg.style.color = "#e74c3c";
+                statusMsg.innerText = "× Error: Invalid JSON format.";
+                console.error(err);
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    function renderDashboard(data) {
+        const config = { responsive: true, displaylogo: false };
+
+        // 1. Time-Series Line Chart
+        const years = [...new Set(data.map(d => d.Year))].sort();
+        const avgLifeByYear = years.map(y => {
+            const records = data.filter(d => d.Year === y);
+            return records.reduce((acc, curr) => acc + (curr['Life expectancy'] || 0), 0) / records.length;
+        });
+
+        Plotly.newPlot('trendChart', [{
+            x: years, y: avgLifeByYear, mode: 'lines+markers',
+            line: {color: '#3498db', shape: 'spline'},
+            name: 'Avg Life Expectancy'
+        }], { title: '<b>Global Life Expectancy Trends</b>', xaxis: {title: 'Year'}, yaxis: {title: 'Age (Years)'} }, config);
+
+        // 2. GDP vs Health Scatter
+        Plotly.newPlot('gdpChart', [{
+            x: data.map(d => d.GDP),
+            y: data.map(d => d['Life expectancy']),
+            mode: 'markers',
+            text: data.map(d => d.Country),
+            marker: { size: 10, color: data.map(d => d['Adult Mortality']), colorscale: 'Viridis', showscale: true, colorbar: {title: 'Mortality'} }
+        }], { 
+            title: '<b>Economic Wealth vs Longevity</b>', 
+            xaxis: {title: 'GDP (Log Scale)', type: 'log'}, 
+            yaxis: {title: 'Life Expectancy'} 
+        }, config);
+
+        // 3. Prevention Index (Immunization)
+        const latestYear = Math.max(...data.map(d => d.Year));
+        const latestData = data.filter(d => d.Year === latestYear).slice(0, 12);
+
+        Plotly.newPlot('vaxChart', [
+            { x: latestData.map(d => d.Country), y: latestData.map(d => d['Polio']), name: 'Polio', type: 'bar' },
+            { x: latestData.map(d => d.Country), y: latestData.map(d => d['Hepatitis B']), name: 'Hep B', type: 'bar' },
+            { x: latestData.map(d => d.Country), y: latestData.map(d => d['Diphtheria']), name: 'Diphtheria', type: 'bar' }
+        ], { barmode: 'group', title: '<b>Immunization Coverage (Latest Year)</b>' }, config);
+
+        // 4. Mortality Comparison
+        Plotly.newPlot('mortalityChart', [
+            { x: latestData.map(d => d.Country), y: latestData.map(d => d['Adult Mortality']), name: 'Adult', type: 'bar' },
+            { x: latestData.map(d => d.Country), y: latestData.map(d => d['infant deaths']), name: 'Infant', type: 'bar' }
+        ], { title: '<b>Mortality Rate Comparison</b>', barmode: 'stack' }, config);
+
+        // 5. Socio-Economic Correlation
+        Plotly.newPlot('schoolingChart', [{
+            x: data.map(d => d.Schooling),
+            y: data.map(d => d['Life expectancy']),
+            mode: 'markers',
+            marker: { color: '#8e44ad', opacity: 0.5 }
+        }], { title: '<b>Education vs Life Expectancy</b>', xaxis: {title: 'Years of Schooling'}, yaxis: {title: 'Life Expectancy'} }, config);
+
+        // 6. Distribution by Status
+        Plotly.newPlot('statusChart', [
+            { y: data.filter(d => d.Status === 'Developed').map(d => d['Life expectancy']), type: 'box', name: 'Developed' },
+            { y: data.filter(d => d.Status === 'Developing').map(d => d['Life expectancy']), type: 'box', name: 'Developing' }
+        ], { title: '<b>Development Gap Analysis</b>' }, config);
+    }
+</script>
+
+</body>
+</html>
